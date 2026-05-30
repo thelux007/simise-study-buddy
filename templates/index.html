@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#4A90D9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Study Buddy">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Simise's Study Buddy</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4F8;color:#2D3748;padding-bottom:70px;}
+.screen{display:none;padding:16px;max-width:900px;margin:0 auto;}
+.screen.active{display:block;}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;padding:16px;}
+h1{font-size:1.6rem;font-weight:700;color:#2D3748;}
+h2{font-size:1.1rem;font-weight:600;color:#4A5568;margin-bottom:12px;}
+h3{font-size:1rem;font-weight:600;margin-bottom:8px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;color:#fff;}
+.badge-maths{background:#4A90D9;}
+.badge-afrikaans{background:#F5A623;}
+.badge-other{background:#A0AEC0;}
+.badge-ems{background:#8E44AD;}
+.btn{display:inline-block;padding:12px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.95rem;font-weight:600;min-height:48px;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:#4A90D9;color:#fff;}
+.btn-success{background:#7ED321;color:#fff;}
+.btn-danger{background:#E74C3C;color:#fff;}
+.btn-outline{background:#fff;color:#4A90D9;border:2px solid #4A90D9;}
+.btn-sm{padding:6px 12px;min-height:36px;font-size:.85rem;}
+.btn-block{display:block;width:100%;text-align:center;margin-bottom:8px;}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #E2E8F0;z-index:100;}
+.nav-tab{flex:1;padding:10px 4px;text-align:center;cursor:pointer;font-size:.7rem;color:#A0AEC0;border:none;background:none;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.nav-tab .icon{font-size:1.4rem;}
+.nav-tab.active{color:#4A90D9;font-weight:600;}
+.form-group{margin-bottom:12px;}
+label{display:block;font-size:.85rem;font-weight:600;margin-bottom:4px;color:#4A5568;}
+input,select,textarea{width:100%;padding:10px 12px;border:2px solid #E2E8F0;border-radius:8px;font-size:1rem;font-family:inherit;min-height:44px;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#4A90D9;}
+textarea{min-height:80px;resize:vertical;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;}
+.modal h2{margin-bottom:16px;}
+.hw-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #F0F4F8;}
+.hw-item:last-child{border-bottom:none;}
+.hw-item.overdue{border-left:4px solid #E74C3C;padding-left:10px;}
+.hw-item.done .hw-desc{text-decoration:line-through;color:#A0AEC0;}
+.hw-check{width:22px;height:22px;min-width:22px;border-radius:6px;border:2px solid #CBD5E0;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center;margin-top:2px;}
+.hw-check.checked{background:#7ED321;border-color:#7ED321;color:#fff;}
+.test-card{border-left:5px solid #7ED321;padding-left:12px;}
+.test-card.urgent{border-color:#E74C3C;}
+.test-card.soon{border-color:#F5A623;}
+.days-badge{padding:4px 10px;border-radius:20px;font-size:.8rem;font-weight:700;color:#fff;}
+.days-green{background:#7ED321;}
+.days-orange{background:#F5A623;}
+.days-red{background:#E74C3C;}
+.chat-window{height:380px;overflow-y:auto;background:#F7FAFC;border-radius:12px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:80%;padding:10px 14px;border-radius:12px;line-height:1.5;font-size:.95rem;}
+.msg-buddy{align-self:flex-start;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.msg-curro{align-self:flex-end;background:#4A90D9;color:#fff;}
+.msg-name{font-size:.75rem;font-weight:600;color:#718096;margin-bottom:3px;}
+.thinking{align-self:flex-start;background:#fff;padding:10px 14px;border-radius:12px;color:#A0AEC0;font-style:italic;}
+.thinking span{animation:blink 1.2s infinite;}
+.thinking span:nth-child(2){animation-delay:.2s;}
+.thinking span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:0;}40%{opacity:1;}}
+.subject-btns{display:flex;gap:8px;margin-bottom:12px;}
+.subject-btn{flex:1;padding:12px;border:2px solid #4A90D9;background:#fff;color:#4A90D9;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;min-height:48px;}
+.subject-btn.active{background:#4A90D9;color:#fff;}
+.chat-input-row{display:flex;gap:8px;}
+.chat-input-row textarea{flex:1;min-height:48px;max-height:120px;}
+.banner{background:#FFF3CD;border:1px solid #F5A623;border-radius:8px;padding:12px;margin-bottom:12px;color:#856404;}
+.empty-state{text-align:center;padding:32px 16px;color:#A0AEC0;font-size:1rem;}
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0;}
+.quick-actions .btn{margin:0;}
+.streak-num{font-size:2.5rem;font-weight:800;color:#F5A623;}
+.quote-card{background:linear-gradient(135deg,#4A90D9,#667eea);color:#fff;border-radius:12px;padding:16px;margin-bottom:16px;font-style:italic;font-size:.95rem;line-height:1.6;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.upload-status{margin-top:10px;font-size:.9rem;font-weight:600;}
+.upload-status.success{color:#7ED321;}
+.upload-status.error{color:#E74C3C;}
+.book-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F0F4F8;}
+.book-item:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+<div id="install-banner" style="display:none;background:#4A90D9;color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:999;">
+  <span>&#128241; Install Study Buddy on your home screen!</span>
+  <button id="install-btn" style="background:#fff;color:#4A90D9;border:none;padding:6px 14px;border-radius:6px;font-weight:600;cursor:pointer;">Install</button>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="hwModal">
+  <div class="modal">
+    <h2>Add Homework</h2>
+    <div class="form-group"><label>Subject</label>
+      <select id="hwSubject"><option>Maths</option><option>Afrikaans</option><option>EMS</option><option>Other</option></select></div>
+    <div class="form-group"><label>Description</label>
+      <textarea id="hwDesc" placeholder="What's the homework?"></textarea></div>
+    <div class="form-group"><label>Due Date</label>
+      <input type="date" id="hwDue"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveHomework()">Save</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('hwModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="testModal">
+  <div class="modal">
+    <h2>Add Test</h2>
+    <div class="form-group"><label>Subject</label>
+      <select id="testSubject"><option>Maths</option><option>Afrikaans</option><option>EMS</option></select></div>
+    <div class="form-group"><label>Topic / Chapter</label>
+      <input type="text" id="testTopic" placeholder="e.g. Algebraic expressions"></div>
+    <div class="form-group"><label>Test Date</label>
+      <input type="date" id="testDate"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTest()">Save</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal('testModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div class="screen active" id="screen-home">
+  <div class="card" style="background:linear-gradient(135deg,#4A90D9,#5BA3F5);color:#fff;border-radius:16px;">
+    <div style="font-size:1.8rem;font-weight:800;" id="greeting">Hi Simise! 👋</div>
+    <div id="todayDate" style="font-size:.9rem;opacity:.85;margin-top:4px;"></div>
+  </div>
+  <div id="testBanner"></div>
+  <div class="card"><h2>📌 Today's Focus</h2><div id="todayHomework"></div></div>
+  <div class="card"><h2>📅 Coming Up</h2><div id="upcomingTests"></div></div>
+  <div class="card" style="text-align:center;">
+    <h2>🔥 Study Streak</h2>
+    <div class="streak-num" id="streakNum">0</div>
+    <div id="streakLabel" style="color:#718096;font-size:.9rem;margin-bottom:4px;">days in a row!</div>
+  </div>
+  <div class="quote-card" id="quoteCard"></div>
+  <div class="quick-actions">
+    <button class="btn btn-outline" onclick="openModal('hwModal')">+ Add Homework</button>
+    <button class="btn btn-outline" onclick="openModal('testModal')">+ Add Test</button>
+    <button class="btn btn-primary" style="grid-column:1/-1" onclick="switchTab('study')">Start Studying →</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-homework">
+  <div class="section-header">
+    <h1>📝 Homework</h1>
+    <button class="btn btn-primary btn-sm" onclick="openModal('hwModal')">+ Add</button>
+  </div>
+  <div id="hwList"></div>
+</div>
+
+<div class="screen" id="screen-tests">
+  <div class="section-header">
+    <h1>📅 Tests</h1>
+    <button class="btn btn-primary btn-sm" onclick="openModal('testModal')">+ Add</button>
+  </div>
+  <div id="testList"></div>
+</div>
+
+<div class="screen" id="screen-study">
+  <h1 style="margin-bottom:16px;">💬 Study Buddy</h1>
+  <div class="card">
+    <div class="subject-btns">
+      <button class="subject-btn active" id="subBtn-Maths" onclick="selectSubject('Maths')">🔢 Maths</button>
+      <button class="subject-btn" id="subBtn-Afrikaans" onclick="selectSubject('Afrikaans')">🇿🇦 Afrikaans</button>
+      <button class="subject-btn" id="subBtn-EMS" onclick="selectSubject('EMS')">💼 EMS</button>
+    </div>
+    <div class="form-group">
+      <label>Topic</label>
+      <select id="topicSelect" onchange="clearChat()"></select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-primary" style="flex:1" onclick="startSession()">Start Session 🚀</button>
+      <button class="btn btn-outline btn-sm" onclick="clearChat()">Clear Chat</button>
+    </div>
+    <div class="chat-window" id="chatWindow"></div>
+    <div class="chat-input-row">
+      <textarea id="chatInput" placeholder="Type your question or answer here..." rows="2" onkeydown="handleChatKey(event)"></textarea>
+      <button class="btn btn-primary" onclick="sendMessage()" style="min-width:70px;">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-books">
+  <h1 style="margin-bottom:16px;">📚 My Textbooks</h1>
+  <div class="card">
+    <p style="color:#718096;font-size:.9rem;margin-bottom:12px;">Upload your textbooks so your study buddy can reference them! 📖</p>
+    <div id="bookList"><div class="empty-state">No textbooks uploaded yet.<br>Add one to supercharge your study sessions!</div></div>
+  </div>
+  <div class="card">
+    <h2>Upload Textbook</h2>
+    <div class="form-group"><label>Subject</label>
+      <select id="bookSubject"><option>Maths</option><option>Afrikaans</option><option>EMS</option></select></div>
+    <div class="form-group"><label>PDF File (max 50MB)</label>
+      <input type="file" id="bookFile" accept=".pdf"></div>
+    <button class="btn btn-primary btn-block" onclick="uploadBook()">Upload Textbook</button>
+    <div class="upload-status" id="uploadStatus"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-tab active" id="tab-home" onclick="switchTab('home')"><span class="icon">🏠</span>Home</button>
+  <button class="nav-tab" id="tab-homework" onclick="switchTab('homework')"><span class="icon">📝</span>Homework</button>
+  <button class="nav-tab" id="tab-tests" onclick="switchTab('tests')"><span class="icon">📅</span>Tests</button>
+  <button class="nav-tab" id="tab-study" onclick="switchTab('study')"><span class="icon">💬</span>Study</button>
+  <button class="nav-tab" id="tab-books" onclick="switchTab('books')"><span class="icon">📚</span>Books</button>
+<button class="nav-tab" onclick="showScreen('parent')">
+  <span class="icon">👨‍👩‍👦</span>Parent
+</button>
+</nav>
+
+<script>
+const QUOTES = [
+  "Every expert was once a beginner. Keep going, Simise! 💪",
+  "Hard work beats talent when talent doesn't work hard.",
+  "Jy kan dit doen, Simise! Glo in jouself! 🌟",
+  "Success is the sum of small efforts repeated every day.",
+  "The more you study, the luckier you get.",
+  "Don't watch the clock; do what it does — keep going.",
+  "Mistakes are proof that you are trying. Keep at it!",
+  "A little progress each day adds up to big results.",
+  "Champions train, losers complain. You're a champion!",
+  "Your future self will thank you for studying today. 📚"
+];
+
+const TOPICS = {
+  Maths: ["Whole numbers","Integers","Exponents","Patterns & functions","Algebraic expressions","Algebraic equations","Graphs","Geometry","Pythagoras","Area & perimeter","Volume & surface area","Data handling","Probability"],
+  Afrikaans: ["Lees begrip","Skryfwerk","Taalstrukture","Woordeskat","Luister & praat"],
+  EMS: ["The Economy","Needs & Wants","Goods & Services","Economic Sectors","Financial Literacy","Income & Expenditure","Budgets","Profit & Loss","Entrepreneurship","The Business Environment","Economic Cycle","Indigenous Economic Activities"]
+};
+
+let currentSubject = 'Maths';
+let chatMessages = [];
+let allHomework = [];
+let allTests = [];
+
+async function api(url, opts={}) {
+  const r = await fetch(url, {headers:{'Content-Type':'application/json'}, ...opts});
+  return r.json();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function daysUntil(d) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dt = new Date(d + 'T00:00:00');
+  return Math.round((dt - today) / 86400000);
+}
+
+function daysBadge(days) {
+  const cls = days <= 3 ? 'days-red' : days <= 7 ? 'days-orange' : 'days-green';
+  const label = days < 0 ? 'Overdue!' : days === 0 ? 'Today!' : days === 1 ? 'Tomorrow!' : `${days} days`;
+  return `<span class="days-badge ${cls}">${label}</span>`;
+}
+
+// HOME
+async function loadHome() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  document.getElementById('todayDate').textContent = today.toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('quoteCard').textContent = '"' + QUOTES[today.getDate() % QUOTES.length] + '"';
+
+  allHomework = await api('/api/homework');
+  allTests = await api('/api/tests');
+  const streak = await api('/api/streak');
+
+  document.getElementById('streakNum').textContent = streak.streak || 0;
+
+  const todayStr = today.toISOString().split('T')[0];
+  const todayHw = allHomework.filter(h => !h.done && h.dueDate === todayStr);
+  const todayDiv = document.getElementById('todayHomework');
+  if (todayHw.length === 0) {
+    todayDiv.innerHTML = '<div class="empty-state" style="padding:12px">Nothing due today! Great job staying on top of things 🌟</div>';
+  } else {
+    todayDiv.innerHTML = todayHw.map(h => `<div class="hw-item"><span class="badge badge-${h.subject.toLowerCase()}">${h.subject}</span>&nbsp;<span>${h.description}</span></div>`).join('');
+  }
+
+  const soonTests = allTests.filter(t => daysUntil(t.testDate) >= 0).sort((a,b) => a.testDate.localeCompare(b.testDate)).slice(0,3);
+  const upDiv = document.getElementById('upcomingTests');
+  if (soonTests.length === 0) {
+    upDiv.innerHTML = '<div class="empty-state" style="padding:12px">No upcoming tests. Add one!</div>';
+  } else {
+    upDiv.innerHTML = soonTests.map(t => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F4F8;">
+      <div><span class="badge badge-${t.subject.toLowerCase()}">${t.subject}</span> <strong>${t.topic}</strong><br><small style="color:#718096">${formatDate(t.testDate)}</small></div>
+      ${daysBadge(daysUntil(t.testDate))}</div>`).join('');
+  }
+
+  const urgentTest = allTests.find(t => { const d = daysUntil(t.testDate); return d >= 0 && d <= 7; });
+  document.getElementById('testBanner').innerHTML = urgentTest
+    ? `<div class="banner">⚠️ <strong>${urgentTest.subject} test</strong> on <strong>${urgentTest.topic}</strong> coming up in ${daysUntil(urgentTest.testDate)} day(s)! Don't forget to practice.</div>` : '';
+}
+
+// HOMEWORK
+async function loadHomework() {
+  allHomework = await api('/api/homework');
+  const subjects = ['Maths','Afrikaans','EMS','Other'];
+  const pending = allHomework.filter(h => !h.done);
+  const done = allHomework.filter(h => h.done);
+  const div = document.getElementById('hwList');
+  let html = '';
+  subjects.forEach(sub => {
+    const items = pending.filter(h => h.subject === sub);
+    if (items.length === 0) return;
+    html += `<div class="card"><h3><span class="badge badge-${sub.toLowerCase()}">${sub}</span></h3>`;
+    items.forEach(h => {
+      const days = daysUntil(h.dueDate);
+      const overdue = days < 0;
+      html += `<div class="hw-item${overdue?' overdue':''}">
+        <div class="hw-check${h.done?' checked':''}" onclick="toggleHw('${h.id}')">${h.done?'✓':''}</div>
+        <div style="flex:1"><div class="hw-desc">${h.description}</div><small style="color:${overdue?'#E74C3C':'#718096'}">${formatDate(h.dueDate)}${overdue?' (Overdue)':''}</small></div>
+        <button class="btn btn-danger btn-sm" onclick="deleteHw('${h.id}')">🗑️</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  if (pending.length === 0) html = '<div class="card"><div class="empty-state">No homework yet! Enjoy the break 🎉</div></div>';
+  if (done.length > 0) {
+    html += `<details class="card"><summary style="cursor:pointer;font-weight:600;color:#718096">✅ Completed (${done.length})</summary>`;
+    done.forEach(h => { html += `<div class="hw-item done"><div class="hw-check checked">✓</div><div style="flex:1" class="hw-desc">${h.description}</div><button class="btn btn-outline btn-sm" onclick="toggleHw('${h.id}')">↩</button><button class="btn btn-danger btn-sm" onclick="deleteHw('${h.id}')">🗑️</button></div>`; });
+    html += '</details>';
+  }
+  div.innerHTML = html;
+}
+
+async function saveHomework() {
+  const sub = document.getElementById('hwSubject').value;
+  const desc = document.getElementById('hwDesc').value.trim();
+  const due = document.getElementById('hwDue').value;
+  if (!desc || !due) { alert('Please fill in all fields'); return; }
+  await api('/api/homework', {method:'POST', body: JSON.stringify({subject:sub, description:desc, dueDate:due})});
+  closeModal('hwModal');
+  document.getElementById('hwDesc').value = '';
+  loadHomework(); loadHome();
+}
+
+async function toggleHw(id) {
+  await api(`/api/homework/${id}`, {method:'PATCH', body:'{}'});
+  loadHomework(); loadHome();
+}
+
+async function deleteHw(id) {
+  await api(`/api/homework/${id}`, {method:'DELETE'});
+  loadHomework(); loadHome();
+}
+
+// TESTS
+async function loadTests() {
+  allTests = await api('/api/tests');
+  const sorted = [...allTests].filter(t => daysUntil(t.testDate) >= -30).sort((a,b) => a.testDate.localeCompare(b.testDate));
+  const div = document.getElementById('testList');
+  if (sorted.length === 0) { div.innerHTML = '<div class="card"><div class="empty-state">No tests added yet. Add one to start preparing!</div></div>'; return; }
+  div.innerHTML = sorted.map(t => {
+    const days = daysUntil(t.testDate);
+    const cls = days <= 3 ? 'urgent' : days <= 7 ? 'soon' : '';
+    return `<div class="card test-card ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div><span class="badge badge-${t.subject.toLowerCase()}">${t.subject}</span>
+          <div style="font-size:1.05rem;font-weight:700;margin:6px 0;">${t.topic}</div>
+          <div style="color:#718096;font-size:.9rem;">${formatDate(t.testDate)}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          ${daysBadge(days)}
+          <button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')">🗑️</button>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%" onclick="practiceTest('${t.subject}','${t.topic}')">Practice for this test →</button>
+    </div>`;
+  }).join('');
+}
+
+async function saveTest() {
+  const sub = document.getElementById('testSubject').value;
+  const topic = document.getElementById('testTopic').value.trim();
+  const date = document.getElementById('testDate').value;
+  if (!topic || !date) { alert('Please fill in all fields'); return; }
+  await api('/api/tests', {method:'POST', body: JSON.stringify({subject:sub, topic:topic, testDate:date})});
+  closeModal('testModal');
+  document.getElementById('testTopic').value = '';
+  loadTests(); loadHome();
+}
+
+async function deleteTest(id) {
+  await api(`/api/tests/${id}`, {method:'DELETE'});
+  loadTests(); loadHome();
+}
+
+function practiceTest(subject, topic) {
+  selectSubject(subject);
+  const topicSel = document.getElementById('topicSelect');
+  for (let i = 0; i < topicSel.options.length; i++) {
+    if (topicSel.options[i].text === topic || topicSel.options[i].text.toLowerCase().includes(topic.toLowerCase())) {
+      topicSel.selectedIndex = i; break;
+    }
+  }
+  clearChat();
+  switchTab('study');
+  setTimeout(startSession, 300);
+}
+
+// STUDY CHAT
+function selectSubject(sub) {
+  currentSubject = sub;
+  document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('subBtn-'+sub).classList.add('active');
+  const sel = document.getElementById('topicSelect');
+  sel.innerHTML = TOPICS[sub].map(t => `<option>${t}</option>`).join('');
+  clearChat();
+}
+
+function clearChat() {
+  chatMessages = [];
+  document.getElementById('chatWindow').innerHTML = '<div style="text-align:center;color:#A0AEC0;font-size:.9rem;padding:20px">Select a topic and tap Start Session 🚀</div>';
+}
+
+function appendMsg(role, text) {
+  const win = document.getElementById('chatWindow');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'msg-curro' : 'msg-buddy');
+  if (role !== 'user') {
+    const name = document.createElement('div');
+    name.className = 'msg-name'; name.textContent = '🤖 Study Buddy';
+    div.appendChild(name);
+  }
+  const p = document.createElement('div');
+  p.textContent = text;
+  div.appendChild(p);
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+
+function showThinking() {
+  const win = document.getElementById('chatWindow');
+  const div = document.createElement('div');
+  div.className = 'thinking'; div.id = 'thinkingIndicator';
+  div.innerHTML = '🤖 buddy is thinking<span>.</span><span>.</span><span>.</span>';
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+
+function hideThinking() {
+  const el = document.getElementById('thinkingIndicator');
+  if (el) el.remove();
+}
+
+async function startSession() {
+  const topic = document.getElementById('topicSelect').value;
+  clearChat();
+  const openings = {
+    'Algebraic expressions': `Great choice! Algebraic expressions can look tricky but they're actually very logical. What problem are you working on? Type it out and we'll tackle it step by step 🧮`,
+    'Lees begrip': `Lees begrip — reading comprehension! This is about understanding what you read. Do you have a passage to work through, or want to practise some strategies? 📖`,
+  };
+  const defaultOpening = `Let's work on ${topic} together! What question or problem do you have? Type it out and we'll work through it step by step. 😊`;
+  const opening = openings[topic] || defaultOpening;
+  chatMessages = [];
+  showThinking();
+  try {
+    const initMsg = [{role:'user', content:`Hi! I want to study ${topic}.`}];
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages: initMsg, subject: currentSubject, topic})});
+    const data = await res.json();
+    hideThinking();
+    if (data.error) { appendMsg('assistant', '⚠️ ' + data.error); return; }
+    chatMessages.push({role:'user', content:`Hi! I want to study ${topic}.`});
+    chatMessages.push({role:'assistant', content: data.reply});
+    appendMsg('assistant', data.reply);
+  } catch(e) {
+    hideThinking();
+    appendMsg('assistant', opening);
+  }
+  await api('/api/streak/checkin', {method:'POST', body:'{}'});
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const topic = document.getElementById('topicSelect').value;
+  chatMessages.push({role:'user', content: text});
+  appendMsg('user', text);
+  showThinking();
+  try {
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({messages: chatMessages, subject: currentSubject, topic})});
+    const data = await res.json();
+    hideThinking();
+    if (data.error) { appendMsg('assistant', '⚠️ ' + data.error); return; }
+    chatMessages.push({role:'assistant', content: data.reply});
+    appendMsg('assistant', data.reply);
+  } catch(e) {
+    hideThinking();
+    appendMsg('assistant', 'Hmm, I had trouble connecting. Please try again!');
+  }
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+// BOOKS
+async function loadBooks() {
+  const books = await api('/api/books');
+  const div = document.getElementById('bookList');
+  if (books.length === 0) { div.innerHTML = '<div class="empty-state">No textbooks uploaded yet.<br>Add one to supercharge your study sessions!</div>'; return; }
+  div.innerHTML = books.map(b => `<div class="book-item">
+    <div><span class="badge badge-${b.subject.toLowerCase()}">${b.subject}</span>
+      <div style="font-weight:600;margin-top:4px;">${b.title}</div>
+      <div style="font-size:.8rem;color:#718096;">${b.pages} pages • ${formatDate(b.uploadDate)}</div></div>
+    <button class="btn btn-danger btn-sm" onclick="deleteBook('${b.id}')">Remove</button>
+  </div>`).join('');
+}
+
+async function deleteBook(id) {
+  await api(`/api/books/${id}`, {method:'DELETE'});
+  loadBooks();
+}
+
+async function uploadBook() {
+  const file = document.getElementById('bookFile').files[0];
+  const subject = document.getElementById('bookSubject').value;
+  const status = document.getElementById('uploadStatus');
+  if (!file) { status.textContent = 'Please choose a PDF file.'; status.className = 'upload-status error'; return; }
+  status.textContent = 'Uploading & processing...'; status.className = 'upload-status';
+  const fd = new FormData();
+  fd.append('file', file); fd.append('subject', subject);
+  try {
+    const r = await fetch('/api/books/upload', {method:'POST', body: fd});
+    const data = await r.json();
+    if (data.success) {
+      status.textContent = '✅ ' + data.message; status.className = 'upload-status success';
+      document.getElementById('bookFile').value = '';
+      loadBooks();
+    } else {
+      status.textContent = '❌ ' + data.error; status.className = 'upload-status error';
+    }
+  } catch(e) {
+    status.textContent = '❌ Upload failed. Please try again.'; status.className = 'upload-status error';
+  }
+}
+
+// INIT
+selectSubject('Maths');
+loadHome();
+loadHomework();
+loadTests();
+loadBooks();
+</script>
+
+<div class="screen" id="screen-parent">
+  <div id="parent-locked" style="text-align:center;padding:60px 20px;">
+    <div style="font-size:3rem;margin-bottom:16px;">🔒</div>
+    <h2 style="margin-bottom:12px;">Parent Dashboard</h2>
+    <p style="color:#718096;margin-bottom:20px;">Enter your PIN to view Simise's progress</p>
+    <input type="password" id="parentPin" maxlength="4" placeholder="4-digit PIN"
+      style="width:140px;text-align:center;font-size:1.4rem;letter-spacing:8px;padding:12px;border:2px solid #E2E8F0;border-radius:8px;margin-bottom:12px;">
+    <br>
+    <button class="btn btn-primary" onclick="checkParentPin()">Unlock</button>
+    <div id="pinError" style="color:#E74C3C;margin-top:8px;display:none;">Incorrect PIN. Try again.</div>
+  </div>
+  <div id="parent-dashboard" style="display:none;">
+    <div class="card" style="background:linear-gradient(135deg,#4A90D9,#357ABD);color:#fff;">
+      <h1 style="color:#fff;margin-bottom:4px;">📊 Simise's Progress</h1>
+      <div id="reportWeek" style="opacity:.85;font-size:.9rem;"></div>
+    </div>
+    <div class="card">
+      <h2>📚 Homework This Week</h2>
+      <div style="display:flex;gap:16px;margin-top:8px;">
+        <div style="flex:1;text-align:center;padding:16px;background:#F0FFF4;border-radius:10px;">
+          <div id="hwDone" style="font-size:2rem;font-weight:800;color:#7ED321;">0</div>
+          <div style="font-size:.8rem;color:#718096;">Completed</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:16px;background:#FFF5F5;border-radius:10px;">
+          <div id="hwMissed" style="font-size:2rem;font-weight:800;color:#E74C3C;">0</div>
+          <div style="font-size:.8rem;color:#718096;">Overdue</div>
+        </div>
+        <div style="flex:1;text-align:center;padding:16px;background:#EBF8FF;border-radius:10px;">
+          <div id="hwPending" style="font-size:2rem;font-weight:800;color:#4A90D9;">0</div>
+          <div style="font-size:.8rem;color:#718096;">Pending</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>🔥 Study Streak</h2>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+        <div id="parentStreak" style="font-size:3rem;font-weight:800;color:#F5A623;">0</div>
+        <div style="color:#718096;">days in a row</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📅 Upcoming Tests</h2>
+      <div id="parentTests" style="color:#718096;font-size:.9rem;margin-top:8px;">No upcoming tests.</div>
+    </div>
+    <div class="card">
+      <h2>📧 Weekly Report</h2>
+      <p style="color:#718096;font-size:.9rem;margin-bottom:12px;">Send a progress summary to taluxury@gmail.com</p>
+      <button class="btn btn-primary" onclick="sendReport()" id="sendReportBtn">Send Report Now</button>
+      <div id="reportStatus" style="margin-top:8px;font-size:.9rem;"></div>
+    </div>
+    <div style="text-align:center;margin-top:8px;margin-bottom:24px;">
+      <button class="btn btn-outline btn-sm" onclick="lockParent()">🔒 Lock Dashboard</button>
+    </div>
+  </div>
+</div>
+<script>
+// --- Parent Dashboard ---
+const PARENT_PIN = '1234';
+function checkParentPin() {
+  const pin = document.getElementById('parentPin').value;
+  if (pin === PARENT_PIN) {
+    document.getElementById('parent-locked').style.display = 'none';
+    document.getElementById('parent-dashboard').style.display = 'block';
+    loadParentDashboard();
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    document.getElementById('parentPin').value = '';
+  }
+}
+function lockParent() {
+  document.getElementById('parent-locked').style.display = 'block';
+  document.getElementById('parent-dashboard').style.display = 'none';
+  document.getElementById('parentPin').value = '';
+}
+async function loadParentDashboard() {
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  document.getElementById('reportWeek').textContent =
+    'Week of ' + weekStart.toLocaleDateString('en-ZA', {day:'numeric',month:'long',year:'numeric'});
+  const hw = await fetch('/api/homework').then(r => r.json()).catch(() => []);
+  const todayStr = today.toISOString().split('T')[0];
+  const weekStartStr = weekStart.toISOString().split('T')[0];
+  const thisWeek = hw.filter(h => h.dueDate >= weekStartStr);
+  const done = thisWeek.filter(h => h.done).length;
+  const overdue = thisWeek.filter(h => !h.done && h.dueDate < todayStr).length;
+  const pending = thisWeek.filter(h => !h.done && h.dueDate >= todayStr).length;
+  document.getElementById('hwDone').textContent = done;
+  document.getElementById('hwMissed').textContent = overdue;
+  document.getElementById('hwPending').textContent = pending;
+  const streak = await fetch('/api/streak').then(r => r.json()).catch(() => ({streak:0}));
+  document.getElementById('parentStreak').textContent = streak.streak || 0;
+  const tests = await fetch('/api/tests').then(r => r.json()).catch(() => []);
+  const upcoming = tests.filter(t => t.date >= todayStr).sort((a,b) => a.date.localeCompare(b.date)).slice(0,5);
+  const testsEl = document.getElementById('parentTests');
+  if (upcoming.length === 0) {
+    testsEl.textContent = 'No upcoming tests.';
+  } else {
+    testsEl.innerHTML = upcoming.map(t => {
+      const days = Math.round((new Date(t.date) - today) / 86400000);
+      return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0F4F8;">'
+        + '<span><strong>' + t.subject + '</strong> — ' + t.topic + '</span>'
+        + '<span style="color:' + (days<=3?'#E74C3C':days<=7?'#F5A623':'#7ED321') + ';font-weight:600;">'
+        + (days===0?'Today':days===1?'Tomorrow':days+' days') + '</span></div>';
+    }).join('');
+  }
+}
+async function sendReport() {
+  const btn = document.getElementById('sendReportBtn');
+  const status = document.getElementById('reportStatus');
+  btn.disabled = true; btn.textContent = 'Sending...'; status.textContent = '';
+  try {
+    const res = await fetch('/api/report/send', {method:'POST'});
+    const data = await res.json();
+    if (res.ok) { status.style.color='#7ED321'; status.textContent='✅ Report sent to taluxury@gmail.com!'; }
+    else { status.style.color='#E74C3C'; status.textContent='❌ ' + (data.error||'Failed to send'); }
+  } catch(e) { status.style.color='#E74C3C'; status.textContent='❌ Could not reach server'; }
+  btn.disabled=false; btn.textContent='Send Report Now';
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('SW registered', r.scope))
+      .catch(e => console.error('SW error', e));
+  });
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+});
+</script>
+</body>
+</html>
