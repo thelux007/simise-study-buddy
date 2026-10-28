@@ -1,0 +1,5 @@
+HANDOFF.local.txt
+server-data/
+__pycache__/
+*.pyc
+.env
