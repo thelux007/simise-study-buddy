@@ -50,7 +50,10 @@ Fix the weekly report so it lists upcoming tests, and add the project's first au
 - Secrets: none are configured. Do not commit keys; use environment variables when this is fixed.
 
 ## Transfer state
-- Uncommitted changes: all files above, pending the owner's review (update after commit).
-- Unpushed commits: branch docs/handover-setup not yet pushed (update after push).
+- Uncommitted changes: none.
+- Unpushed commits: none. Context commit 0c9d20a pushed to origin/docs/handover-setup
+  on 2026-10-28; this transfer-state update is the commit after it. Verify with
+  `git rev-parse HEAD` against `git rev-parse origin/docs/handover-setup` after pulling.
+- Git identity on Unreal 1: per-clone local config, GitHub noreply address.
 - Large files / external assets and approved location: none.
 - Anything the next device cannot access: nothing in `server-data/` (none exists).

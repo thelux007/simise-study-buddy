@@ -3,7 +3,7 @@
 ## Acceptance exercise (Project Hub)
 - [x] Document how to install, run and test this project. (README.md, Unreal 1 + Claude)
 - [x] Complete the first small change on device A and record checks. (docs only; see HANDOVER.md)
-- [ ] Update HANDOVER.md, commit and push the working branch `docs/handover-setup`.
+- [x] Update HANDOVER.md, commit and push the working branch `docs/handover-setup`. (0c9d20a)
 - [ ] On Home PC, pull that branch and open Codex.
 - [ ] Ask it to read AGENTS.md, HANDOVER.md and TASKS.md; verify it identifies the next task correctly.
 - [ ] Complete that task, verify it and push a new handover.
